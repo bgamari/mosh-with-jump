@@ -3,6 +3,7 @@
 set -o errexit -o pipefail -o nounset
 
 orig_args=("$@")
+mosh_server="mosh-server"
 mosh_server_args=()
 proxy=
 proxy_port=
@@ -23,6 +24,9 @@ while [[ $# -gt 0 ]]; do
     -P | --proxy-port)
       shift
       proxy_port=$1
+      ;;
+    --mosh-server=*)
+      mosh_server=${1#--mosh-server=}
       ;;
     -p)
       mosh_server_args+=("$1" "$2")
@@ -61,7 +65,7 @@ echo "target: $target"
 echo "target host: $target_host"
 
 # start up the mosh server via the proxy
-mosh_server_out=$(ssh -J "$proxy" "$target" -- mosh-server new -c 256 -s -l LANG=en_US.UTF-8 -l LANGUAGE=en_US "${mosh_server_args[@]}")
+mosh_server_out=$(ssh -J "$proxy" "$target" -- "$mosh_server" new -c 256 -s -l LANG=en_US.UTF-8 -l LANGUAGE=en_US "${mosh_server_args[@]}")
 
 # parse out the port and key; we'll need the port for proxying
 connect_line=$(grep -m1 '^MOSH CONNECT ' <<< "$mosh_server_out")
